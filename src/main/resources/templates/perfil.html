@@ -60,12 +60,30 @@
             justify-content: center;
             font-size: 3rem;
             color: #757575;
+            position: relative;
         }
         
         .profile-image img {
             width: 100%;
             height: 100%;
             object-fit: cover;
+        }
+        
+        .profile-image-upload {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background-color: #3f51b5;
+            color: white;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 1.5rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
         }
         
         .profile-name {
@@ -149,6 +167,36 @@
             color: #c62828;
             border: 1px solid #ffcdd2;
         }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-right: 10px;
+        }
+        
+        .tab.active {
+            border-bottom: 2px solid #3f51b5;
+            color: #3f51b5;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -165,32 +213,60 @@
                 <img th:if="${tieneImagen}" th:src="@{'/usuario/imagen/' + ${id}}" id="profileImage" alt="Foto de perfil" />
                 <!-- Si no tiene imagen, mostrar icono por defecto -->
                 <span th:unless="${tieneImagen}">👤</span>
+                
+                <!-- Botón para cambiar la imagen -->
+                <label for="fileInput" class="profile-image-upload">+</label>
+                <input type="file" id="fileInput" accept="image/*" class="hidden" />
             </div>
             <p class="profile-name" th:text="${nombre}">Usuario</p>
             <p class="profile-email" th:text="${email}">usuario@ejemplo.com</p>
         </div>
         
-        <form action="/perfil/actualizar-password" method="post">
-            <div class="form-group">
-                <label for="password">Nueva Contraseña</label>
-                <input type="password" id="password" name="password" placeholder="Ingresa tu nueva contraseña" required />
-            </div>
-            
-            <div class="form-group">
-                <label for="confirmPassword">Confirmar Contraseña</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirma tu nueva contraseña" required />
-            </div>
-            
-            <div class="form-group">
-                <label for="currentPassword">Contraseña Actual</label>
-                <input type="password" id="currentPassword" name="currentPassword" placeholder="Ingresa tu contraseña actual" required />
-            </div>
-            
-            <div class="buttons">
-                <a href="/home" class="btn btn-secondary">Volver</a>
-                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
-            </div>
-        </form>
+        <!-- Tabs para separar las secciones -->
+        <div class="tabs">
+            <div class="tab active" data-tab="password">Cambiar Contraseña</div>
+            <div class="tab" data-tab="image">Cambiar Imagen</div>
+        </div>
+        
+        <!-- Tab de Cambiar Contraseña -->
+        <div id="passwordTab" class="tab-content active">
+            <form action="/perfil/actualizar-password" method="post">
+                <div class="form-group">
+                    <label for="password">Nueva Contraseña</label>
+                    <input type="password" id="password" name="password" placeholder="Ingresa tu nueva contraseña" required />
+                </div>
+                
+                <div class="form-group">
+                    <label for="confirmPassword">Confirmar Contraseña</label>
+                    <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirma tu nueva contraseña" required />
+                </div>
+                
+                <div class="form-group">
+                    <label for="currentPassword">Contraseña Actual</label>
+                    <input type="password" id="currentPassword" name="currentPassword" placeholder="Ingresa tu contraseña actual" required />
+                </div>
+                
+                <div class="buttons">
+                    <a href="/home" class="btn btn-secondary">Volver</a>
+                    <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Tab de Cambiar Imagen -->
+        <div id="imageTab" class="tab-content">
+            <form action="/perfil/actualizar-imagen" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="imagenPerfil">Selecciona una nueva imagen de perfil</label>
+                    <input type="file" id="imagenPerfil" name="imagen" accept="image/*" required />
+                </div>
+                
+                <div class="buttons">
+                    <a href="/home" class="btn btn-secondary">Volver</a>
+                    <button type="submit" class="btn btn-primary">Subir Imagen</button>
+                </div>
+            </form>
+        </div>
         
         <!-- Mensaje de resultado -->
         <div th:if="${mensaje}" class="mensaje" th:classappend="${tipoMensaje == 'error'} ? 'mensaje-error' : 'mensaje-exito'" th:text="${mensaje}">
@@ -199,6 +275,23 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Cambio de tabs
+            const tabs = document.querySelectorAll('.tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', function() {
+                    // Quitar clases active
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Añadir clase active al tab clickeado y su contenido
+                    this.classList.add('active');
+                    const tabId = this.getAttribute('data-tab');
+                    document.getElementById(tabId + 'Tab').classList.add('active');
+                });
+            });
+            
             // Cargar la imagen de perfil
             const profileImage = document.getElementById('profileImage');
             if (profileImage) {
@@ -212,6 +305,22 @@
                     })
                     .catch(error => console.error('Error cargando la imagen:', error));
             }
+            
+            // Mostrar imagen seleccionada en miniatura
+            const fileInput = document.getElementById('fileInput');
+            fileInput.addEventListener('change', function() {
+                const file = this.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // Redirigir a la tab de imagen
+                        document.querySelector('.tab[data-tab="image"]').click();
+                        // Establecer la imagen seleccionada en el input del formulario
+                        document.getElementById('imagenPerfil').files = fileInput.files;
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
         });
     </script>
 </body>
