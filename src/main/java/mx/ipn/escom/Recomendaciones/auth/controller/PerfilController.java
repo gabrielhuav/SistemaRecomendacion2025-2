@@ -9,13 +9,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.sql.Blob;
+import java.io.IOException;
 import java.util.Base64;
 
 @Controller
@@ -108,6 +105,58 @@ public class PerfilController {
         model.addAttribute("email", usuario.getEmail());
         model.addAttribute("id", usuario.getId());
         model.addAttribute("tieneImagen", usuario.getImagen() != null);
+        
+        return "perfil";
+    }
+    
+    @PostMapping("/perfil/actualizar-imagen")
+    public String actualizarImagen(@RequestParam("imagen") MultipartFile imagen, Model model) {
+        // Obtener el usuario autenticado actual
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        Usuario usuario = usuarioRepository.findByNombre(username);
+        
+        if (usuario == null) {
+            model.addAttribute("mensaje", "Error: No se pudo encontrar el usuario.");
+            model.addAttribute("tipoMensaje", "error");
+            return "perfil";
+        }
+        
+        try {
+            // Verificar que la imagen no esté vacía
+            if (imagen.isEmpty()) {
+                model.addAttribute("mensaje", "Error: Por favor selecciona una imagen.");
+                model.addAttribute("tipoMensaje", "error");
+                return "perfil";
+            }
+            
+            // Verificar el tipo de archivo (opcional)
+            String contentType = imagen.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                model.addAttribute("mensaje", "Error: Por favor selecciona un archivo de imagen válido.");
+                model.addAttribute("tipoMensaje", "error");
+                return "perfil";
+            }
+            
+            // Obtener los bytes de la imagen
+            byte[] imagenBytes = imagen.getBytes();
+            
+            // Guardar la imagen en el usuario
+            usuario.setImagen(imagenBytes);
+            usuarioRepository.save(usuario);
+            
+            // Añadir mensaje de éxito y datos del usuario al modelo
+            model.addAttribute("mensaje", "¡Imagen de perfil actualizada con éxito!");
+            model.addAttribute("tipoMensaje", "exito");
+            model.addAttribute("nombre", usuario.getNombre());
+            model.addAttribute("email", usuario.getEmail());
+            model.addAttribute("id", usuario.getId());
+            model.addAttribute("tieneImagen", true);
+            
+        } catch (IOException e) {
+            model.addAttribute("mensaje", "Error al procesar la imagen: " + e.getMessage());
+            model.addAttribute("tipoMensaje", "error");
+        }
         
         return "perfil";
     }
