@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Búsqueda de Libros</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background-color: #1a237e;
+            color: white;
+            width: 100%;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .search-section {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .search-title {
+            font-size: 1.5rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .search-form {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        
+        .form-group {
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        
+        .search-button {
+            background-color: #3f51b5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 24px;
+            height: 42px;
+        }
+        
+        .search-button:hover {
+            background-color: #303f9f;
+        }
+        
+        .results-section {
+            margin-top: 30px;
+        }
+        
+        .results-title {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .book-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        
+        .book-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .book-cover {
+            height: 300px;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .book-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .book-info {
+            padding: 15px;
+        }
+        
+        .book-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .book-author {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .book-year {
+            font-size: 0.9rem;
+            color: #888;
+            margin-bottom: 12px;
+        }
+        
+        .book-description {
+            font-size: 0.9rem;
+            color: #555;
+            line-height: 1.5;
+            max-height: 4.5em;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+        }
+        
+        .book-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 15px;
+        }
+        
+        .book-button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .details-button {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .details-button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .recommend-button {
+            background-color: #3f51b5;
+            color: white;
+        }
+        
+        .recommend-button:hover {
+            background-color: #303f9f;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+            gap: 5px;
+        }
+        
+        .pagination-button {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            background-color: white;
+            color: #333;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .pagination-button:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .pagination-button.active {
+            background-color: #3f51b5;
+            color: white;
+            border-color: #3f51b5;
+        }
+        
+        .no-results {
+            text-align: center;
+            padding: 30px;
+            color: #666;
+            display: none;
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+        
+        .back-button {
+            background-color: #f5f5f5;
+            color: #333;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .back-button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            display: none;
+        }
+        
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            margin: 0 auto;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3f51b5;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Búsqueda de Libros</h1>
+    </div>
+    
+    <div class="container">
+        <div class="search-section">
+            <h2 class="search-title">Buscar Libros</h2>
+            <div class="search-form">
+                <div class="form-group">
+                    <label for="title">Título</label>
+                    <input type="text" id="title" placeholder="Ej: El señor de los anillos">
+                </div>
+                <div class="form-group">
+                    <label for="author">Autor</label>
+                    <input type="text" id="author" placeholder="Ej: Gabriel García Márquez">
+                </div>
+                <div class="form-group">
+                    <label for="subject">Categoría</label>
+                    <select id="subject">
+                        <option value="">Todas las categorías</option>
+                        <option value="fiction">Ficción</option>
+                        <option value="fantasy">Fantasía</option>
+                        <option value="science_fiction">Ciencia Ficción</option>
+                        <option value="romance">Romance</option>
+                        <option value="thriller">Suspense</option>
+                        <option value="mystery">Misterio</option>
+                        <option value="horror">Terror</option>
+                        <option value="history">Historia</option>
+                        <option value="biography">Biografía</option>
+                        <option value="self_help">Autoayuda</option>
+                    </select>
+                </div>
+                <button id="searchButton" class="search-button">Buscar</button>
+            </div>
+        </div>
+        
+        <div id="loading" class="loading">
+            <div class="loading-spinner"></div>
+            <p>Buscando libros...</p>
+        </div>
+        
+        <div id="resultsSection" class="results-section" style="display: none;">
+            <h2 class="results-title">Resultados de la búsqueda</h2>
+            <div id="bookGrid" class="book-grid">
+                <!-- Los resultados de búsqueda se mostrarán aquí -->
+            </div>
+            
+            <div id="pagination" class="pagination">
+                <!-- La paginación se generará dinámicamente -->
+            </div>
+        </div>
+        
+        <div id="noResults" class="no-results">
+            <h3>No se encontraron resultados para tu búsqueda.</h3>
+            <p>Intenta con otros términos o criterios de búsqueda.</p>
+        </div>
+        
+        <div class="navigation-buttons">
+            <a href="/home" class="back-button">Volver al inicio</a>
+        </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchButton = document.getElementById('searchButton');
+            const titleInput = document.getElementById('title');
+            const authorInput = document.getElementById('author');
+            const subjectInput = document.getElementById('subject');
+            const bookGrid = document.getElementById('bookGrid');
+            const resultsSection = document.getElementById('resultsSection');
+            const noResults = document.getElementById('noResults');
+            const loading = document.getElementById('loading');
+            const pagination = document.getElementById('pagination');
+            
+            let currentPage = 1;
+            const itemsPerPage = 10;
+            let totalResults = 0;
+            let allBooks = [];
+            
+            searchButton.addEventListener('click', function() {
+                performSearch(1);
+            });
+            
+            // Permitir la búsqueda al presionar Enter en los campos de texto
+            [titleInput, authorInput].forEach(input => {
+                input.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        performSearch(1);
+                    }
+                });
+            });
+            
+            function performSearch(page) {
+                const title = titleInput.value.trim();
+                const author = authorInput.value.trim();
+                const subject = subjectInput.value;
+                
+                if (title === '' && author === '' && subject === '') {
+                    alert('Por favor, ingresa al menos un criterio de búsqueda');
+                    return;
+                }
+                
+                // Mostrar loader
+                loading.style.display = 'block';
+                resultsSection.style.display = 'none';
+                noResults.style.display = 'none';
+                
+                // Construir la URL de búsqueda
+                let searchQuery = [];
+                
+                if (title) {
+                    searchQuery.push(`title=${encodeURIComponent(title)}`);
+                }
+                
+                if (author) {
+                    searchQuery.push(`author=${encodeURIComponent(author)}`);
+                }
+                
+                if (subject) {
+                    searchQuery.push(`subject=${encodeURIComponent(subject)}`);
+                }
+                
+                // Si hay título, autor o categoría específicos, usamos los parámetros correspondientes
+                // Si no, usamos un término de búsqueda general
+                let apiUrl;
+                if (searchQuery.length > 0) {
+                    apiUrl = `https://openlibrary.org/search.json?${searchQuery.join('&')}&page=${page}`;
+                } else {
+                    // Búsqueda general si no hay criterios específicos
+                    apiUrl = `https://openlibrary.org/search.json?q=${encodeURIComponent(title || author || '')}`;
+                }
+                
+                fetch(apiUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Error en la respuesta de la API');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        // Ocultar loader
+                        loading.style.display = 'none';
+                        
+                        if (data.docs && data.docs.length > 0) {
+                            // Guardar todos los libros y la página actual
+                            allBooks = data.docs;
+                            currentPage = page;
+                            totalResults = data.numFound;
+                            
+                            // Mostrar resultados
+                            displayBooks(allBooks);
+                            // Actualizar paginación
+                            updatePagination();
+                            
+                            // Mostrar sección de resultados
+                            resultsSection.style.display = 'block';
+                        } else {
+                            // Mostrar mensaje de no resultados
+                            noResults.style.display = 'block';
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        loading.style.display = 'none';
+                        alert('Ocurrió un error al buscar los libros. Por favor, intenta de nuevo.');
+                    });
+            }
+            
+            function displayBooks(books) {
+                // Limpiar el contenedor de libros
+                bookGrid.innerHTML = '';
+                
+                // Mostrar los libros
+                books.forEach(book => {
+                    // Crear elemento de tarjeta para el libro
+                    const bookCard = document.createElement('div');
+                    bookCard.className = 'book-card';
+                    
+                    // Obtener la imagen de la portada si está disponible
+                    let coverUrl = '/api/placeholder/250/300';
+                    if (book.cover_i) {
+                        coverUrl = `https://covers.openlibrary.org/b/id/${book.cover_i}-M.jpg`;
+                    }
+                    
+                    // Obtener el año de publicación si está disponible
+                    let publishYear = book.first_publish_year || (book.publish_year ? book.publish_year[0] : 'Desconocido');
+                    
+                    // Obtener autores si están disponibles
+                    let authors = book.author_name ? book.author_name.join(', ') : 'Autor desconocido';
+                    
+                    // Obtener descripción o usar un placeholder
+                    let description = 'No hay descripción disponible para este libro.';
+                    
+                    // Estructura HTML de la tarjeta
+                    bookCard.innerHTML = `
+                        <div class="book-cover">
+                            <img src="${coverUrl}" alt="Portada de ${book.title}" onerror="this.src='/api/placeholder/250/300'">
+                        </div>
+                        <div class="book-info">
+                            <h3 class="book-title">${book.title}</h3>
+                            <p class="book-author">${authors}</p>
+                            <p class="book-year">${publishYear}</p>
+                            <p class="book-description">${description}</p>
+                            <div class="book-actions">
+                                <button class="book-button details-button" data-key="${book.key}">Ver detalles</button>
+                                <button class="book-button recommend-button" data-key="${book.key}">Recomendar</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Agregar evento para el botón de detalles
+                    bookCard.querySelector('.details-button').addEventListener('click', function() {
+                        const key = this.getAttribute('data-key');
+                        window.open(`https://openlibrary.org${key}`, '_blank');
+                    });
+                    
+                    // Agregar evento para el botón de recomendar (aquí puedes implementar tu propia lógica)
+                    bookCard.querySelector('.recommend-button').addEventListener('click', function() {
+                        const key = this.getAttribute('data-key');
+                        alert(`Libro recomendado: ${book.title}`);
+                        // Aquí podrías implementar la lógica para guardar la recomendación en tu backend
+                    });
+                    
+                    // Agregar la tarjeta al grid
+                    bookGrid.appendChild(bookCard);
+                });
+            }
+            
+            function updatePagination() {
+                // Limpiar paginación
+                pagination.innerHTML = '';
+                
+                // Calcular número total de páginas
+                const totalPages = Math.ceil(totalResults / itemsPerPage);
+                
+                // Si hay muchas páginas, mostrar solo un subconjunto
+                let startPage = Math.max(1, currentPage - 2);
+                let endPage = Math.min(totalPages, currentPage + 2);
+                
+                // Asegurar que siempre se muestren al menos 5 páginas si están disponibles
+                if (endPage - startPage < 4) {
+                    if (startPage === 1) {
+                        endPage = Math.min(5, totalPages);
+                    } else {
+                        startPage = Math.max(1, endPage - 4);
+                    }
+                }
+                
+                // Botón para primera página
+                if (startPage > 1) {
+                    addPaginationButton(1, '«');
+                }
+                
+                // Botones de páginas
+                for (let i = startPage; i <= endPage; i++) {
+                    addPaginationButton(i, i.toString(), i === currentPage);
+                }
+                
+                // Botón para última página
+                if (endPage < totalPages) {
+                    addPaginationButton(totalPages, '»');
+                }
+            }
+            
+            function addPaginationButton(page, text, isActive = false) {
+                const button = document.createElement('button');
+                button.className = 'pagination-button';
+                if (isActive) {
+                    button.classList.add('active');
+                }
+                button.textContent = text;
+                
+                button.addEventListener('click', function() {
+                    if (page !== currentPage) {
+                        performSearch(page);
+                    }
+                });
+                
+                pagination.appendChild(button);
+            }
+        });
+    </script>
+</body>
+</html>

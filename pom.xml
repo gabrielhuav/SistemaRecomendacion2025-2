@@ -88,6 +88,9 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<mainClass>mx.ipn.escom.Recomendaciones.RecomendacionesApplication</mainClass>
+				</configuration>
 			</plugin>
 		</plugins>
 	</build>
