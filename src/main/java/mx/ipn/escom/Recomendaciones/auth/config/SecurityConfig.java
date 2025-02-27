@@ -19,6 +19,7 @@ public class SecurityConfig {
             .authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/api/auth/**").permitAll()  // Permitir acceso sin autenticación a la app móvil
                 .requestMatchers("/admin").hasRole("ADMIN")
+                .requestMatchers("/perfil").authenticated()
                 .requestMatchers("/home").authenticated()
                 .anyRequest().permitAll()
             )
