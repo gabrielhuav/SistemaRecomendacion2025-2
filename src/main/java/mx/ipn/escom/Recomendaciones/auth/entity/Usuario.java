@@ -22,7 +22,7 @@ public class Usuario {
     private String password;
 
     @Lob
-    @Column(name = "imagen")
+    @Column(name = "imagen", columnDefinition = "LONGBLOB") // Cambiado a LONGBLOB para soportar imágenes más grandes
     private byte[] imagen;
 
     @ManyToMany(fetch = FetchType.EAGER)

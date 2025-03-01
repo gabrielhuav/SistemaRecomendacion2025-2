@@ -12,6 +12,11 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Base64;
 
@@ -23,6 +28,11 @@ public class PerfilController {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    // Constantes para el redimensionamiento de imágenes
+    private static final int MAX_WIDTH = 500;
+    private static final int MAX_HEIGHT = 500;
+    private static final long MAX_FILE_SIZE = 1024 * 1024; // 1MB
 
     @GetMapping("/perfil")
     public String perfil(Model model) {
@@ -130,7 +140,7 @@ public class PerfilController {
                 return "perfil";
             }
             
-            // Verificar el tipo de archivo (opcional)
+            // Verificar el tipo de archivo
             String contentType = imagen.getContentType();
             if (contentType == null || !contentType.startsWith("image/")) {
                 model.addAttribute("mensaje", "Error: Por favor selecciona un archivo de imagen válido.");
@@ -140,6 +150,11 @@ public class PerfilController {
             
             // Obtener los bytes de la imagen
             byte[] imagenBytes = imagen.getBytes();
+            
+            // Redimensionar la imagen si es demasiado grande
+            if (imagen.getSize() > MAX_FILE_SIZE) {
+                imagenBytes = redimensionarImagen(imagenBytes);
+            }
             
             // Guardar la imagen en el usuario
             usuario.setImagen(imagenBytes);
@@ -159,5 +174,54 @@ public class PerfilController {
         }
         
         return "perfil";
+    }
+    
+    /**
+     * Redimensiona la imagen para reducir su tamaño
+     */
+    private byte[] redimensionarImagen(byte[] imagenOriginal) throws IOException {
+        // Leer la imagen original
+        ByteArrayInputStream bis = new ByteArrayInputStream(imagenOriginal);
+        BufferedImage imagen = ImageIO.read(bis);
+        
+        if (imagen == null) {
+            throw new IOException("No se pudo leer la imagen");
+        }
+        
+        // Calcular nuevas dimensiones manteniendo la relación de aspecto
+        int originalWidth = imagen.getWidth();
+        int originalHeight = imagen.getHeight();
+        
+        // Si la imagen ya es pequeña, devolverla sin cambios
+        if (originalWidth <= MAX_WIDTH && originalHeight <= MAX_HEIGHT) {
+            return imagenOriginal;
+        }
+        
+        int newWidth, newHeight;
+        
+        if (originalWidth > originalHeight) {
+            newWidth = MAX_WIDTH;
+            newHeight = (int) (originalHeight * ((double) MAX_WIDTH / originalWidth));
+        } else {
+            newHeight = MAX_HEIGHT;
+            newWidth = (int) (originalWidth * ((double) MAX_HEIGHT / originalHeight));
+        }
+        
+        // Crear la nueva imagen redimensionada
+        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D g = resizedImage.createGraphics();
+        g.drawImage(imagen, 0, 0, newWidth, newHeight, null);
+        g.dispose();
+        
+        // Convertir la imagen redimensionada a bytes
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        
+        // Determinar el formato de la imagen
+        String format = "jpeg"; // Formato por defecto
+        
+        // Guardar la imagen en el formato determinado
+        ImageIO.write(resizedImage, format, bos);
+        
+        return bos.toByteArray();
     }
 }
