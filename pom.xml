@@ -69,6 +69,12 @@
             <artifactId>spring-boot-starter-thymeleaf</artifactId>
         </dependency>
 
+		<!-- Thymeleaf extras para Spring Security -->
+		<dependency>
+			<groupId>org.thymeleaf.extras</groupId>
+			<artifactId>thymeleaf-extras-springsecurity6</artifactId>
+		</dependency>
+
         <!-- BCrypt for password encryption -->
         <dependency>
             <groupId>org.springframework.security</groupId>
@@ -81,6 +87,12 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<scope>runtime</scope>
+		</dependency>
     </dependencies>
 	
 	<build>
@@ -89,7 +101,7 @@
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
-					<mainClass>mx.ipn.escom.Recomendaciones.RecomendacionesApplication</mainClass>
+					<mainClass>mx.ipn.escom.Recomendaciones.auth.RecomendacionesApplication</mainClass>
 				</configuration>
 			</plugin>
 		</plugins>

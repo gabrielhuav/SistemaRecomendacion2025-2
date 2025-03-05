@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<html lang="es" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -70,6 +71,14 @@
             background-color: #303f9f;
         }
         
+        .admin-button {
+            background-color: #f44336;
+        }
+        
+        .admin-button:hover {
+            background-color: #d32f2f;
+        }
+        
         .logout {
             margin-top: 2rem;
             color: #3f51b5;
@@ -88,12 +97,15 @@
     
     <div class="container">
         <h1>Bienvenido</h1>
-        <p class="welcome-message">Hola, Usuario</p>
+        <p class="welcome-message" sec:authentication="name">Usuario</p>
         
         <div class="menu-options">
             <a href="/libros" class="menu-button">Libros</a>
             <a href="/peliculas" class="menu-button">Películas</a>
             <a href="/perfil" class="menu-button">Mi Perfil</a>
+            
+            <!-- Mostrar el botón de administración solo a los usuarios con rol ADMIN -->
+            <a sec:authorize="hasRole('ROLE_ADMIN')" href="/admin/usuarios" class="menu-button admin-button">Administración de Usuarios</a>
         </div>
         
         <a href="/logout" class="logout">Cerrar Sesión</a>

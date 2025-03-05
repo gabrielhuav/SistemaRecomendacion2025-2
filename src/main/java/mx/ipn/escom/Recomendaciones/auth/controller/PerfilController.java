@@ -44,10 +44,8 @@ public class PerfilController {
         Usuario usuario = usuarioRepository.findByNombre(username);
         
         if (usuario != null) {
-            // Añadir los datos del usuario al modelo (excepto la contraseña)
-            model.addAttribute("nombre", usuario.getNombre());
-            model.addAttribute("email", usuario.getEmail());
-            model.addAttribute("id", usuario.getId());
+            // Añadir los datos del usuario al modelo
+            model.addAttribute("usuario", usuario);
             model.addAttribute("tieneImagen", usuario.getImagen() != null);
         }
         
@@ -72,6 +70,47 @@ public class PerfilController {
         return "";
     }
 
+    @PostMapping("/perfil/actualizar-info")
+    public String actualizarInfo(
+            @RequestParam("nombre") String nuevoNombre,
+            @RequestParam("email") String nuevoEmail,
+            Model model) {
+        
+        // Obtener el usuario autenticado actual
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String username = auth.getName();
+        Usuario usuario = usuarioRepository.findByNombre(username);
+        
+        if (usuario == null) {
+            model.addAttribute("mensaje", "Error: No se pudo encontrar el usuario.");
+            model.addAttribute("tipoMensaje", "error");
+            return "perfil";
+        }
+        
+        // Verificar que el email no esté en uso por otro usuario
+        Usuario usuarioExistente = usuarioRepository.findByEmail(nuevoEmail);
+        if (usuarioExistente != null && !usuarioExistente.getId().equals(usuario.getId())) {
+            model.addAttribute("mensaje", "Error: El email ya está en uso por otro usuario.");
+            model.addAttribute("tipoMensaje", "error");
+            model.addAttribute("usuario", usuario);
+            model.addAttribute("tieneImagen", usuario.getImagen() != null);
+            return "perfil";
+        }
+        
+        // Actualizar la información del usuario
+        usuario.setNombre(nuevoNombre);
+        usuario.setEmail(nuevoEmail);
+        usuarioRepository.save(usuario);
+        
+        // Añadir mensaje de éxito y datos del usuario al modelo
+        model.addAttribute("mensaje", "¡Información actualizada con éxito!");
+        model.addAttribute("tipoMensaje", "exito");
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("tieneImagen", usuario.getImagen() != null);
+        
+        return "perfil";
+    }
+
     @PostMapping("/perfil/actualizar-password")
     public String actualizarPassword(
             @RequestParam("password") String nuevaPassword,
@@ -94,6 +133,8 @@ public class PerfilController {
         if (!passwordEncoder.matches(currentPassword, usuario.getPassword())) {
             model.addAttribute("mensaje", "Error: La contraseña actual es incorrecta.");
             model.addAttribute("tipoMensaje", "error");
+            model.addAttribute("usuario", usuario);
+            model.addAttribute("tieneImagen", usuario.getImagen() != null);
             return "perfil";
         }
         
@@ -101,6 +142,8 @@ public class PerfilController {
         if (!nuevaPassword.equals(confirmPassword)) {
             model.addAttribute("mensaje", "Error: Las contraseñas nuevas no coinciden.");
             model.addAttribute("tipoMensaje", "error");
+            model.addAttribute("usuario", usuario);
+            model.addAttribute("tieneImagen", usuario.getImagen() != null);
             return "perfil";
         }
         
@@ -111,9 +154,7 @@ public class PerfilController {
         // Añadir mensaje de éxito y datos del usuario al modelo
         model.addAttribute("mensaje", "¡Contraseña actualizada con éxito!");
         model.addAttribute("tipoMensaje", "exito");
-        model.addAttribute("nombre", usuario.getNombre());
-        model.addAttribute("email", usuario.getEmail());
-        model.addAttribute("id", usuario.getId());
+        model.addAttribute("usuario", usuario);
         model.addAttribute("tieneImagen", usuario.getImagen() != null);
         
         return "perfil";
@@ -137,6 +178,8 @@ public class PerfilController {
             if (imagen.isEmpty()) {
                 model.addAttribute("mensaje", "Error: Por favor selecciona una imagen.");
                 model.addAttribute("tipoMensaje", "error");
+                model.addAttribute("usuario", usuario);
+                model.addAttribute("tieneImagen", usuario.getImagen() != null);
                 return "perfil";
             }
             
@@ -145,6 +188,8 @@ public class PerfilController {
             if (contentType == null || !contentType.startsWith("image/")) {
                 model.addAttribute("mensaje", "Error: Por favor selecciona un archivo de imagen válido.");
                 model.addAttribute("tipoMensaje", "error");
+                model.addAttribute("usuario", usuario);
+                model.addAttribute("tieneImagen", usuario.getImagen() != null);
                 return "perfil";
             }
             
@@ -163,14 +208,14 @@ public class PerfilController {
             // Añadir mensaje de éxito y datos del usuario al modelo
             model.addAttribute("mensaje", "¡Imagen de perfil actualizada con éxito!");
             model.addAttribute("tipoMensaje", "exito");
-            model.addAttribute("nombre", usuario.getNombre());
-            model.addAttribute("email", usuario.getEmail());
-            model.addAttribute("id", usuario.getId());
+            model.addAttribute("usuario", usuario);
             model.addAttribute("tieneImagen", true);
             
         } catch (IOException e) {
             model.addAttribute("mensaje", "Error al procesar la imagen: " + e.getMessage());
             model.addAttribute("tipoMensaje", "error");
+            model.addAttribute("usuario", usuario);
+            model.addAttribute("tieneImagen", usuario.getImagen() != null);
         }
         
         return "perfil";
