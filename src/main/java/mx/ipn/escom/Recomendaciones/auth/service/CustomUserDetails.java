@@ -22,8 +22,16 @@ public class CustomUserDetails implements UserDetails {
         // Convertir los roles del usuario a GrantedAuthority
         Set<SimpleGrantedAuthority> authorities = new HashSet<>();
         usuario.getRoles().forEach(rol -> {
-            authorities.add(new SimpleGrantedAuthority(rol.getNombre())); // Aquí asume que 'nombre' es el nombre del rol
+            // Imprimir los roles para depuración
+            System.out.println("Rol encontrado: " + rol.getNombre());
+            authorities.add(new SimpleGrantedAuthority(rol.getNombre())); // Usar el nombre del rol directamente
         });
+        
+        // Imprimir todas las autoridades para depuración
+        for (SimpleGrantedAuthority auth : authorities) {
+            System.out.println("Autoridad asignada: " + auth.getAuthority());
+        }
+        
         return authorities;
     }
 

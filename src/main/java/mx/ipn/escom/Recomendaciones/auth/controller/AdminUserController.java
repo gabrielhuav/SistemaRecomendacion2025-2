@@ -19,7 +19,7 @@ import java.util.Set;
 
 @Controller
 @RequestMapping("/admin")
-@PreAuthorize("hasRole('ROLE_ADMIN')")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
 public class AdminUserController {
 
     @Autowired
@@ -37,6 +37,7 @@ public class AdminUserController {
         model.addAttribute("usuarios", usuarios);
         return "administrador";
     }
+
 
     @GetMapping("/usuarios/{id}")
     public String verUsuario(@PathVariable Long id, Model model) {

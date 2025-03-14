@@ -22,9 +22,10 @@ public class SecurityConfig {
             .csrf().disable()  // Desactiva CSRF para facilitar el acceso desde la aplicación móvil
             .authorizeHttpRequests((requests) -> requests
                 .requestMatchers("/api/auth/**").permitAll()  // Permitir acceso sin autenticación a la app móvil
+                .requestMatchers("/api/register").permitAll()  // Permitir acceso al registro desde app móvil
                 .requestMatchers("/css/**", "/js/**", "/images/**").permitAll()  // Recursos estáticos
                 .requestMatchers("/register", "/login").permitAll()  // Páginas públicas
-                .requestMatchers("/admin/**").hasRole("ROL_ADMIN")  // Solo admins pueden acceder a rutas /admin/
+                .requestMatchers("/admin/**").hasAuthority("ROLE_ADMIN")  // Solo admins pueden acceder a rutas /admin/
                 .requestMatchers("/perfil").authenticated()
                 .requestMatchers("/home").authenticated()
                 .anyRequest().permitAll()
