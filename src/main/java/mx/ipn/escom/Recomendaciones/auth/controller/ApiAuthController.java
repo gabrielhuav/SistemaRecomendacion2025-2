@@ -24,11 +24,10 @@ public class ApiAuthController {
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody LoginCredentials credentials) {
         try {
+            // Usar el email para autenticar
             Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(credentials.getCorreo(), credentials.getPassword())
-            );
-
-            // Retornar un mensaje o un token según sea necesario
+            );    
             return ResponseEntity.ok("Login successful for API");
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Invalid login credentials");
