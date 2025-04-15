@@ -71,6 +71,14 @@
             background-color: #303f9f;
         }
         
+        .favorites-button {
+            background-color: #4CAF50;
+        }
+        
+        .favorites-button:hover {
+            background-color: #43A047;
+        }
+        
         .admin-button {
             background-color: #f44336;
         }
@@ -100,8 +108,8 @@
         <p class="welcome-message" sec:authentication="name">Usuario</p>
         
         <div class="menu-options">
-            <a href="/libros" class="menu-button">Libros</a>
-            <a href="/peliculas" class="menu-button">Películas</a>
+            <a href="/libros" class="menu-button">Buscar Libros</a>
+            <a href="/favoritos" class="menu-button favorites-button">Mis Libros Favoritos</a>
             <a href="/perfil" class="menu-button">Mi Perfil</a>
             
             <!-- Mostrar el botón de administración solo a los usuarios con rol ADMIN -->

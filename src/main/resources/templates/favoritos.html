@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mis Libros Favoritos</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+        }
+        
+        .header {
+            background-color: #1a237e;
+            color: white;
+            width: 100%;
+            padding: 1rem 0;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .page-title {
+            color: #333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .book-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s, box-shadow 0.3s;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .book-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        
+        .book-cover {
+            height: 300px;
+            background-color: #e0e0e0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .book-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .book-info {
+            padding: 15px;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .book-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #333;
+        }
+        
+        .book-author {
+            font-size: 0.9rem;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .date-added {
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 12px;
+        }
+        
+        .book-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: auto;
+            padding-top: 15px;
+        }
+        
+        .book-button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .details-button {
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        
+        .details-button:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .remove-button {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .remove-button:hover {
+            background-color: #d32f2f;
+        }
+        
+        .empty-favorites {
+            text-align: center;
+            padding: 30px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .navigation-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .back-button {
+            background-color: #3f51b5;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+        
+        .back-button:hover {
+            background-color: #303f9f;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Mis Libros Favoritos</h1>
+    </div>
+    
+    <div class="container">
+        <h2 class="page-title">Libros que has marcado como favoritos</h2>
+        
+        <div th:if="${favoritos.isEmpty()}" class="empty-favorites">
+            <h3>No tienes libros favoritos aún</h3>
+            <p>Explora el catálogo y agrega libros a tus favoritos para verlos aquí.</p>
+        </div>
+        
+        <div th:unless="${favoritos.isEmpty()}" class="favorites-grid">
+            <div class="book-card" th:each="favorito : ${favoritos}">
+                <div class="book-cover">
+                    <img th:if="${favorito.imagenUrl != null}" th:src="${favorito.imagenUrl}" th:alt="${favorito.titulo}" onerror="this.src='/api/placeholder/250/300'">
+                    <img th:unless="${favorito.imagenUrl != null}" src="/api/placeholder/250/300" alt="Sin portada">
+                </div>
+                <div class="book-info">
+                    <h3 class="book-title" th:text="${favorito.titulo}">Título del libro</h3>
+                    <p class="book-author" th:text="${favorito.autor != null ? favorito.autor : 'Autor desconocido'}">Autor del libro</p>
+                    <p class="date-added" th:text="${'Agregado el ' + #temporals.format(favorito.fechaAgregado, 'dd/MM/yyyy')}">Fecha de agregado</p>
+                    <div class="book-actions">
+                        <a class="book-button details-button" th:href="${'https://openlibrary.org' + favorito.libroId}" target="_blank">Ver detalles</a>
+                        <button class="book-button remove-button" th:data-id="${favorito.libroId}" onclick="eliminarFavorito(this.getAttribute('data-id'))">Eliminar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="navigation-buttons">
+            <a href="/libros" class="back-button">Buscar más libros</a>
+        </div>
+    </div>
+    
+    <script>
+        function eliminarFavorito(libroId) {
+            if (confirm('¿Estás seguro de que deseas eliminar este libro de tus favoritos?')) {
+                fetch(`/api/favoritos/eliminar/${libroId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.mensaje) {
+                        alert(data.mensaje);
+                        // Recargar la página para reflejar los cambios
+                        window.location.reload();
+                    } else if (data.error) {
+                        alert('Error: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Ocurrió un error al eliminar el libro de favoritos');
+                });
+            }
+        }
+    </script>
+</body>
+</html>

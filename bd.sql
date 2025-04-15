@@ -30,6 +30,19 @@ CREATE TABLE usuario_roles (
     FOREIGN KEY (rol_id) REFERENCES roles(id)
 );
 
+-- Crear la tabla de libros favoritos
+CREATE TABLE libros_favoritos (
+    id BIGINT PRIMARY KEY AUTO_INCREMENT,
+    usuario_id BIGINT NOT NULL,
+    libro_id VARCHAR(255) NOT NULL,
+    titulo VARCHAR(255) NOT NULL,
+    autor VARCHAR(255),
+    imagen_url VARCHAR(1024),
+    fecha_agregado TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE CASCADE,
+    UNIQUE KEY uk_usuario_libro (usuario_id, libro_id)
+);
+
 -- Insertar roles en la tabla roles
 INSERT INTO roles (nombre) VALUES ('ROLE_ADMIN'), ('ROLE_USER');
 
@@ -46,7 +59,21 @@ GRANT ALL PRIVILEGES ON practica2.* TO 'admin'@'localhost';
 -- Aplicar los cambios
 FLUSH PRIVILEGES;
 
-
 -- Para el BLOB:
-
 ALTER TABLE usuarios ADD COLUMN imagen LONGBLOB;
+
+-- Crear usuario administrador (la contraseña 'secreto' está encriptada con BCrypt)
+INSERT INTO usuarios (nombre, email, password) 
+VALUES ('administrador', 'admin@sistema.com', '$2a$10$TRQFRRFbVMQGUvEZ.gE07OXnCHcr0nFbWO6CXk4QTg7A8QyGb3RMO');
+
+-- Obtener el ID del usuario recién creado
+SET @admin_id = LAST_INSERT_ID();
+
+-- Asignar el rol de administrador al usuario
+INSERT INTO usuario_roles (usuario_id, rol_id) 
+SELECT @admin_id, id FROM roles WHERE nombre = 'ROLE_ADMIN';
+
+-- Agregar un libro favorito para el administrador
+INSERT INTO libros_favoritos (usuario_id, libro_id, titulo, autor, imagen_url, fecha_agregado) 
+VALUES (@admin_id, '/works/OL26365569W', 'Yzklerin Efendisi 1', 'J.R.R. Tolkien', 
+        'https://covers.openlibrary.org/b/id/12308941-M.jpg', NOW());
